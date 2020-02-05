@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <title>Reach example app</title>
+  </head>
+  <body>
+
+    <header>
+      <div class="collapse bg-dark" id="navbarHeader">
+        <div class="container">
+          <div class="row">
+            <div class="col-sm-8 col-md-7 py-4">
+              <h4 class="text-white">About</h4>
+              <p class="text-muted">This is just a simple app to showcase the Reach product and checkout API's</p>
+            </div>
+            <div class="col-sm-4 offset-md-1 py-4">
+              <h4 class="text-white">Links</h4>
+              <ul class="list-unstyled">
+                <li><a href="https://reach.shopping/" target="_blank" class="text-white">Reach Shopping</a></li>
+                <li><a href="https://reachcheckoutapi.docs.apiary.io/" target="_blank" class="text-white">Reach Checkout API</a></li>
+                <li><a href="https://reachfeed.docs.apiary.io/" target="_blank" class="text-white">Reach Product Feed API</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="navbar navbar-dark bg-dark shadow-sm">
+        <div class="container d-flex justify-content-between">
+          <a href="#" class="navbar-brand d-flex align-items-center">
+            <strong>Reach Example App</strong>
+          </a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarHeader" aria-controls="navbarHeader" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main role="main" id="app">
+
+      <section class="jumbotron text-center">
+        <div class="container">
+          <h1>Awesome Shop</h1>
+          <p class="lead text-muted">All purchases are done in test mode, so feel free to buy as many as you like.</p>
+          <button type="button" v-on:click="triggerTrackForUrl" class="btn btn-outline-secondary">Track a product url</button>
+        </div>
+      </section>
+
+      <div class="album py-5 bg-light">
+        <div class="container">
+
+          <div class="row">
+
+            <div class="col-md-4" v-for="prod in products">
+              <div class="card mb-4 shadow-sm">
+
+                <!-- TODO: Uncomment below to do frontend product tracking by Reach tracking pixel -->
+                <!-- <img class="tracking-pixel" :src="trackPixelUrl(prod)"> -->
+
+                <img class="product-image" :src="prod.locales[0].images[0]">
+                <div class="card-body">
+                  <p class="card-text">{{ prod.locales[0].title }}</p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                      <button type="button" v-on:click="buy(prod)" class="btn btn-sm btn-success">
+                        Buy
+                      </button>
+                    </div>
+                    <strong>{{ prod.locales[0].variants[0].price }}kr</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div> <!-- /row -->
+
+        </div>
+      </div>
+
+      <div id="checkoutModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document" style="height: 80%;">
+          <div class="modal-content" style="height: 100%;">
+            <iframe id="checkoutFrame" src="" style="height: 100%;"></iframe>
+          </div>
+        </div>
+      </div>
+
+    </main>
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <script>
+      var app = new Vue({
+        el: '#app',
+        data: {
+          products: []
+        },
+        created() {
+          axios.get('/products').then( res => this.products = res.data )
+        },
+        methods: {
+          triggerTrackForUrl() {
+            const url = prompt('Enter product url to track')
+            if (url.indexOf('http') === 0) this.track(url) // only track web urls
+          },
+
+          trackPixelUrl: (prod) => {
+            const variant = prod.locales[0].variants[0]
+            return `https://track.reach.shopping/v1/pixel.png?url=${encodeURIComponent(variant.urls[0])}`
+          },
+
+          track: (url) => {
+            axios.get(`/track?url=${encodeURIComponent(url)}`).then( (res) => alert('Please reload page in some time, to fetch new products') )
+          },
+
+          buy: (prod) => {
+            const variant = prod.locales[0].variants[0] // keep it simple always take first variants
+            const item = {
+              url: variant.urls[0],
+              price: variant.price,
+              size: variant.attributes.size || null,
+              color: variant.attributes.color || null
+            }
+            axios.post('/checkout', item).then( res => {
+              let checkoutUrl = res.data.checkoutUrl
+              $('#checkoutFrame').attr('src', checkoutUrl)
+              $('#checkoutModal').modal()
+            })
+          }
+        }
+      })
+    </script>
+  </body>
+</html>
+
