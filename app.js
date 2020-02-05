@@ -78,12 +78,14 @@ app.post('/checkout', async (req, res) => {
     }
   }
 
+  const reference = '123' // optional but good as a reference in callbacks etc
   const payload = {
     items: [item],
     callback: {
-      success: `${CALLBACK_BASE}callback?ref=123&success=true`,
-      fail: `${CALLBACK_BASE}callback?ref=123&success=true`
+      success: `${CALLBACK_BASE}callback?ref=${reference}&success=true`,
+      fail: `${CALLBACK_BASE}callback?ref=${reference}&success=false`
     },
+    reference: reference,
     test: true
   }
 

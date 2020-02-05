@@ -1,7 +1,8 @@
-Reach example app
-=================
+<h1 align="center">Reach example app</h1>
 
-Just a simple node app to show Reach product and checkout API's functionality.
+<p align="center">a simple node app to show Reach product and checkout API's functionality.</p>
+
+<p align="center"><img src="https://raw.githubusercontent.com/walm/reach-node-example/master/screenshot.jpg" width="800px"></p>
 
 ## Start
 
